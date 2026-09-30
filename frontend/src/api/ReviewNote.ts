@@ -1,21 +1,23 @@
-import { mockData } from "../mocks/seedData";
+import { createCollectionApi } from "./collection";
 import type { ReviewNote } from "../types/ReviewNote";
+import { createReviewNoteResponse } from "../constructors/ReviewNoteConstructor";
+import { writeLog } from "../utils/logger";
 
-const endpoint = "/api/review-note";
+export const reviewNoteApi = createCollectionApi<ReviewNote>(
+  "reviewNote",
+  (row) => writeLog("ReviewNote", 0, `#${row.id} ${row.tag} ${row.status}`),
+  (row) => writeLog("ReviewNote", 1, `#${row.id} ${row.tag} ${row.status}`)
+);
 
 export async function listReviewNote(): Promise<ReviewNote[]> {
-  if (typeof fetch !== "undefined" && endpoint.startsWith("/api") && false) {
-    try {
-      const res = await fetch(endpoint);
-      if (res.ok) return await res.json();
-    } catch {
-      // Local mock fallback keeps the UI available during offline review.
-    }
-  }
-  return [...(mockData.reviewNote as unknown as ReviewNote[])];
+  const rows = await reviewNoteApi.list();
+  return rows.map(createReviewNoteResponse);
 }
 
-export async function saveReviewNote(payload: ReviewNote) {
-  console.info("save ReviewNote", payload);
-  return payload;
+export async function saveReviewNote(payload: ReviewNote): Promise<ReviewNote> {
+  const exists = reviewNoteApi.snapshot().rows.some((row) => row.id === payload.id);
+  const saved = exists
+    ? await reviewNoteApi.update(payload.id, payload)
+    : await reviewNoteApi.create(payload);
+  return createReviewNoteResponse(saved);
 }

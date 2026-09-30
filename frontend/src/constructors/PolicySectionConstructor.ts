@@ -1,15 +1,26 @@
 import type { PolicySection } from "../types/PolicySection";
+import { PrivacyRiskLevel } from "../constants/PrivacyRiskLevel";
 
-export const createDefaultPolicySection = (overrides: Partial<PolicySection> = {}): PolicySection => ({
-  id: 1 as never,
-  document_id: 1 as never,
-  section_no: "section no 1" as never,
-  heading: "heading 1" as never,
-  content: "content 1" as never,
-  category: "REMOVED" as never,
-  risk_level: "LOW" as never,
+export const createDefaultPolicySection = (
+  overrides: Partial<PolicySection> = {}
+): PolicySection => ({
+  id: 0,
+  document_id: 0,
+  section_no: "",
+  heading: "",
+  content: "",
+  category: "GENERAL",
+  risk_level: PrivacyRiskLevel[0],
+  updated_at: new Date().toISOString(),
   ...overrides
 });
 
-export const createPolicySectionForm = createDefaultPolicySection;
-export const createPolicySectionResponse = createDefaultPolicySection;
+export const createPolicySectionForm = (
+  documentId: number,
+  overrides: Partial<PolicySection> = {}
+): PolicySection =>
+  createDefaultPolicySection({ document_id: documentId, ...overrides });
+
+export const createPolicySectionResponse = (
+  row: PolicySection
+): PolicySection => ({ ...createDefaultPolicySection(), ...row });

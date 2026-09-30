@@ -6,4 +6,5 @@ export interface PolicySection {
   content: string;
   category: string;
   risk_level: string;
+  updated_at: string;
 }

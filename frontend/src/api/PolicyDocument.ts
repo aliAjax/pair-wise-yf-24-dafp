@@ -1,21 +1,23 @@
-import { mockData } from "../mocks/seedData";
+import { createCollectionApi } from "./collection";
 import type { PolicyDocument } from "../types/PolicyDocument";
+import { createPolicyDocumentResponse } from "../constructors/PolicyDocumentConstructor";
+import { writeLog } from "../utils/logger";
 
-const endpoint = "/api/policy-document";
+export const policyDocumentApi = createCollectionApi<PolicyDocument>(
+  "policyDocument",
+  (row) => writeLog("PolicyDocument", 0, `#${row.id} ${row.version_label}`),
+  (row) => writeLog("PolicyDocument", 1, `#${row.id} ${row.version_label}`)
+);
 
 export async function listPolicyDocument(): Promise<PolicyDocument[]> {
-  if (typeof fetch !== "undefined" && endpoint.startsWith("/api") && false) {
-    try {
-      const res = await fetch(endpoint);
-      if (res.ok) return await res.json();
-    } catch {
-      // Local mock fallback keeps the UI available during offline review.
-    }
-  }
-  return [...(mockData.policyDocument as unknown as PolicyDocument[])];
+  const rows = await policyDocumentApi.list();
+  return rows.map(createPolicyDocumentResponse);
 }
 
-export async function savePolicyDocument(payload: PolicyDocument) {
-  console.info("save PolicyDocument", payload);
-  return payload;
+export async function savePolicyDocument(payload: PolicyDocument): Promise<PolicyDocument> {
+  const exists = policyDocumentApi.snapshot().rows.some((row) => row.id === payload.id);
+  const saved = exists
+    ? await policyDocumentApi.update(payload.id, payload)
+    : await policyDocumentApi.create(payload);
+  return createPolicyDocumentResponse(saved);
 }

@@ -1,14 +1,34 @@
 import type { PolicyDocument } from "../types/PolicyDocument";
 
-export const createDefaultPolicyDocument = (overrides: Partial<PolicyDocument> = {}): PolicyDocument => ({
-  id: 1 as never,
-  title: "title 1" as never,
-  version_label: "version label 1" as never,
-  raw_text: "raw text 1" as never,
-  normalized_sections: "normalized sections 1" as never,
-  imported_at: "2026-06-11T09:00:00Z" as never,
+const nowIso = () => new Date().toISOString();
+
+export const createDefaultPolicyDocument = (
+  overrides: Partial<PolicyDocument> = {}
+): PolicyDocument => ({
+  id: 0,
+  title: "",
+  version_label: "",
+  raw_text: "",
+  normalized_sections: "",
+  imported_at: nowIso(),
+  updated_at: nowIso(),
+  content_hash: "",
   ...overrides
 });
 
-export const createPolicyDocumentForm = createDefaultPolicyDocument;
-export const createPolicyDocumentResponse = createDefaultPolicyDocument;
+/** 导入表单对象：页面粘贴文本时使用 */
+export const createPolicyDocumentForm = (
+  overrides: Partial<PolicyDocument> = {}
+): PolicyDocument =>
+  createDefaultPolicyDocument({
+    title: "未命名隐私政策",
+    version_label: "v0.0",
+    ...overrides
+  });
+
+/** API 响应对象：补全展示层需要的时间字段 */
+export const createPolicyDocumentResponse = (row: PolicyDocument): PolicyDocument => ({
+  ...createDefaultPolicyDocument(),
+  ...row,
+  updated_at: row.updated_at || row.imported_at
+});
